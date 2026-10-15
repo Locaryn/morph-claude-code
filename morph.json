@@ -2,13 +2,13 @@
   "$schema": "https://locaryn.dev/schema/morph.json/v0.1",
   "apiVersion": "0.1",
   "name": "morph-claude-code",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-beta.2",
   "description": "Vos modèles Claude (Opus, Sonnet, Haiku) dans Locaryn, avec votre abonnement Claude : le CLI officiel Claude Code sert de pont, sur la boucle locale. Jauge des limites (5 h, semaine) dans le chat.",
   "author": "Locaryn Team",
   "license": "Apache-2.0",
   "homepage": "https://claude.com/product/claude-code",
   "repository": "https://github.com/Locaryn/morph-claude-code",
-  "minLocarynVersion": "0.4.20",
+  "minLocarynVersion": "0.4.21",
   "keywords": [
     "cloud-provider",
     "claude",
@@ -55,7 +55,7 @@
         "version": "2.1.300",
         "probe_bin": "claude"
       },
-      "start_timeout_seconds": 20
+      "start_timeout_seconds": 60
     }
   },
   "ui_contributions": {
@@ -76,6 +76,14 @@
   "beta": true,
   "stability": "untested",
   "versions": [
+    {
+      "version": "1.0.0-beta.2",
+      "is_beta": true,
+      "summary": "Connexion au compte Claude Code depuis Locaryn, sans terminal (page officielle dans le navigateur, code collé dans l'application) ; le pont répond tout de suite aux sondes et ne paraît plus éteint au premier lancement.",
+      "tag": "v1.0.0-beta.2",
+      "released_at": "2026-10-15",
+      "install_source": "Locaryn/morph-claude-code@v1.0.0-beta.2"
+    },
     {
       "version": "1.0.0-beta.1",
       "is_beta": true,

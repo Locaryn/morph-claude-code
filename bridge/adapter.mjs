@@ -11,7 +11,9 @@ import os from "node:os";
 import path from "node:path";
 import {
   dateDe,
+  demarrerConnexion,
   dossierNeutre,
+  envoyerCode,
   executerJsonl,
   libelleFenetre,
   ouvrirTerminal,
@@ -110,11 +112,21 @@ export default {
   async login() {
     const e = exe();
     if (!e) return { ok: false, detail: "Claude Code n'est pas installé." };
-    ouvrirTerminal("Claude Code — connexion", e, ["auth", "login"]);
+    const r = await demarrerConnexion(e, ["auth", "login", "--claudeai"]);
+    if (!r.ok) return r;
     return {
       ok: true,
-      detail: "Une fenêtre s'est ouverte : terminez la connexion dans le navigateur, puis revenez ici.",
+      url: r.url,
+      needs_code: true,
+      detail:
+        "Connectez-vous dans la page qui s'est ouverte, puis collez ici le code qu'elle affiche.",
     };
+  },
+
+  async loginCode(code) {
+    const r = await envoyerCode(code);
+    if (!r.ok) return r;
+    return { ...(await this.status()), ok: true };
   },
 
   async logout() {
