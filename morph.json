@@ -1,0 +1,88 @@
+{
+  "$schema": "https://locaryn.dev/schema/morph.json/v0.1",
+  "apiVersion": "0.1",
+  "name": "morph-claude-code",
+  "version": "1.0.0-beta.1",
+  "description": "Vos modèles Claude (Opus, Sonnet, Haiku) dans Locaryn, avec votre abonnement Claude : le CLI officiel Claude Code sert de pont, sur la boucle locale. Jauge des limites (5 h, semaine) dans le chat.",
+  "author": "Locaryn Team",
+  "license": "Apache-2.0",
+  "homepage": "https://claude.com/product/claude-code",
+  "repository": "https://github.com/Locaryn/morph-claude-code",
+  "minLocarynVersion": "0.4.20",
+  "keywords": [
+    "cloud-provider",
+    "claude",
+    "anthropic",
+    "claude-code",
+    "subscription"
+  ],
+  "permissions": {
+    "network": {
+      "reason": "Parler au pont Claude Code sur la boucle locale : modèles, conversations, limites du compte.",
+      "requireApproval": false
+    },
+    "shell": {
+      "reason": "Installer Claude Code, lancer son pont local et ouvrir la fenêtre de connexion au compte — avec les commandes déclarées ici et aucune autre.",
+      "scope": "always"
+    }
+  },
+  "capabilities": [
+    "cloud-provider"
+  ],
+  "cloud_provider": {
+    "id": "claude-code",
+    "label": "Claude Code",
+    "api_url": "http://127.0.0.1:20131",
+    "models_url": "http://127.0.0.1:20131/v1/models",
+    "usage_url": "http://127.0.0.1:20131/v1/usage",
+    "docs_url": "https://docs.claude.com/en/docs/claude-code/overview",
+    "key_required": false,
+    "refresh_hours": 6,
+    "local": {
+      "start": [
+        "node",
+        "{{morph_dir}}/bridge/server.mjs"
+      ],
+      "env": {
+        "PORT": "20131",
+        "BRIDGE_GATEWAY_DIR": "{{gateway_dir}}"
+      },
+      "health_url": "http://127.0.0.1:20131/health",
+      "install_hint": "Locaryn peut installer Claude Code lui-même (Node.js 18+ requis), ou installez-le depuis claude.com/code.",
+      "install": {
+        "kind": "npm",
+        "package": "@anthropic-ai/claude-code",
+        "version": "2.1.300",
+        "probe_bin": "claude"
+      },
+      "start_timeout_seconds": 20
+    }
+  },
+  "ui_contributions": {
+    "slots": [
+      {
+        "id": "claude-code-account",
+        "slot": "account.connections",
+        "order": 20,
+        "type": "custom-element",
+        "label": "Claude Code",
+        "icon": "cloud",
+        "entry": "dist/account.js",
+        "tag": "locaryn-claude-code-account",
+        "hint": "Connecter votre compte Claude Code"
+      }
+    ]
+  },
+  "beta": true,
+  "stability": "untested",
+  "versions": [
+    {
+      "version": "1.0.0-beta.1",
+      "is_beta": true,
+      "summary": "Premier pont Claude Code : modèles dans le dossier Claude Code, connexion du compte depuis Réglages → Compte, jauge des limites.",
+      "tag": "v1.0.0-beta.1",
+      "released_at": "2026-10-15",
+      "install_source": "Locaryn/morph-claude-code@v1.0.0-beta.1"
+    }
+  ]
+}
