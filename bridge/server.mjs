@@ -28,6 +28,51 @@ const HOST = "127.0.0.1";
 /** La dernière fenêtre de contexte annoncée, pour `/props`. */
 let contexte = adapter.defaultContext ?? 200000;
 
+// L'état du compte, gardé en mémoire.
+//
+// Le lire coûte un lancement du CLI (`claude auth status` : 1,5 s, jusqu'à
+// 15 s au premier lancement), et l'écran du dossier le redemandait toutes les
+// 6 s : la carte de connexion mettait des secondes à apparaître
+// (Locaryn/Locaryn#91). Il est lu au démarrage du pont, servi aussitôt
+// ensuite, et relu en arrière-plan quand il a vieilli.
+
+/** Au-delà, l'état servi est relu en arrière-plan pour le prochain appel. */
+const ETAT_FRAIS_MS = 30_000;
+let etatCompte = null;
+let etatLuA = 0;
+/** La lecture en cours, partagée par tous les appels qui arrivent pendant. */
+let lectureCompte = null;
+
+function relireCompte() {
+  if (!lectureCompte) {
+    lectureCompte = adapter
+      .status()
+      .then((etat) => {
+        etatCompte = etat;
+        etatLuA = Date.now();
+        return etat;
+      })
+      .finally(() => {
+        lectureCompte = null;
+      });
+  }
+  return lectureCompte;
+}
+
+async function etatDuCompte() {
+  if (!etatCompte) return relireCompte();
+  if (Date.now() - etatLuA > ETAT_FRAIS_MS) {
+    relireCompte().catch((e) => console.error(`[${adapter.id}] état du compte illisible : ${e?.message ?? e}`));
+  }
+  return etatCompte;
+}
+
+/** Après une connexion ou une déconnexion, l'ancien état est faux. */
+function oublierCompte() {
+  etatCompte = null;
+  etatLuA = 0;
+}
+
 function json(res, code, obj) {
   const corps = JSON.stringify(obj);
   res.writeHead(code, {
@@ -347,18 +392,25 @@ const serveur = http.createServer(async (req, res) => {
     if (req.method === "POST" && chemin === "/v1/chat/completions") {
       return await completions(req, res);
     }
-    if (chemin === "/auth/status") return json(res, 200, await adapter.status());
-    if (req.method === "POST" && chemin === "/auth/login") return json(res, 200, await adapter.login());
+    if (chemin === "/auth/status") return json(res, 200, await etatDuCompte());
+    if (req.method === "POST" && chemin === "/auth/login") {
+      oublierCompte();
+      return json(res, 200, await adapter.login());
+    }
     // Le code que la page de connexion affiche, collé dans Locaryn.
     if (req.method === "POST" && chemin === "/auth/code") {
       const corps = await lireCorps(req).catch(() => ({}));
       const code = String(corps.code ?? "").trim();
       if (!code) return json(res, 400, { ok: false, detail: "Code vide." });
       if (!adapter.loginCode) return json(res, 400, { ok: false, detail: "Aucun code à saisir ici." });
-      return json(res, 200, await adapter.loginCode(code));
+      const reponse = await adapter.loginCode(code);
+      oublierCompte();
+      return json(res, 200, reponse);
     }
     if (req.method === "POST" && chemin === "/auth/logout") {
-      return json(res, 200, await adapter.logout());
+      const reponse = await adapter.logout();
+      oublierCompte();
+      return json(res, 200, reponse);
     }
     erreur(res, 404, `route inconnue : ${chemin}`);
   } catch (e) {
@@ -368,4 +420,6 @@ const serveur = http.createServer(async (req, res) => {
 
 serveur.listen(PORT, HOST, () => {
   console.log(`[${adapter.id}] pont à l'écoute sur http://${HOST}:${PORT}`);
+  // Préchauffé : quand l'écran du dossier s'ouvre, l'état est déjà là.
+  relireCompte().catch((e) => console.error(`[${adapter.id}] état du compte illisible : ${e?.message ?? e}`));
 });
