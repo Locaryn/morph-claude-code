@@ -21,6 +21,7 @@
 import http from "node:http";
 import { randomUUID } from "node:crypto";
 import adapter from "./adapter.mjs";
+import { surFinDeConnexion } from "./cli.mjs";
 
 const PORT = Number(process.env.PORT || adapter.defaultPort);
 const HOST = "127.0.0.1";
@@ -42,19 +43,28 @@ let etatCompte = null;
 let etatLuA = 0;
 /** La lecture en cours, partagée par tous les appels qui arrivent pendant. */
 let lectureCompte = null;
+/** Change à chaque connexion ou déconnexion : une lecture commencée avant
+ *  ne doit ni être servie, ni écraser l'état (elle dirait « pas connecté »
+ *  juste après la connexion, d'où un second clic). */
+let generation = 0;
 
 function relireCompte() {
-  if (!lectureCompte) {
-    lectureCompte = adapter
+  if (!lectureCompte || lectureCompte.generation !== generation) {
+    const gen = generation;
+    const lecture = adapter
       .status()
       .then((etat) => {
-        etatCompte = etat;
-        etatLuA = Date.now();
+        if (gen === generation) {
+          etatCompte = etat;
+          etatLuA = Date.now();
+        }
         return etat;
       })
       .finally(() => {
-        lectureCompte = null;
+        if (lectureCompte === lecture) lectureCompte = null;
       });
+    lecture.generation = gen;
+    lectureCompte = lecture;
   }
   return lectureCompte;
 }
@@ -69,9 +79,13 @@ async function etatDuCompte() {
 
 /** Après une connexion ou une déconnexion, l'ancien état est faux. */
 function oublierCompte() {
+  generation += 1;
   etatCompte = null;
   etatLuA = 0;
 }
+
+// Une connexion qui se termine seule (sans code collé) change aussi l'état.
+surFinDeConnexion(() => oublierCompte());
 
 function json(res, code, obj) {
   const corps = JSON.stringify(obj);

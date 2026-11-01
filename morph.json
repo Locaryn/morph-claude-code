@@ -2,7 +2,7 @@
   "$schema": "https://locaryn.dev/schema/morph.json/v0.1",
   "apiVersion": "0.1",
   "name": "morph-claude-code",
-  "version": "1.0.0-beta.3",
+  "version": "1.0.0-beta.4",
   "description": "Vos modèles Claude (Opus, Sonnet, Haiku) dans Locaryn, avec votre abonnement Claude : le CLI officiel Claude Code sert de pont, sur la boucle locale. Jauge des limites (5 h, semaine) dans le chat.",
   "author": "Locaryn Team",
   "license": "Apache-2.0",
@@ -76,6 +76,14 @@
   "beta": true,
   "stability": "untested",
   "versions": [
+    {
+      "version": "1.0.0-beta.4",
+      "is_beta": true,
+      "summary": "La jauge montre le quota de la semaine en pourcentage (lu sur le compte), et la connexion au compte aboutit du premier coup.",
+      "tag": "v1.0.0-beta.4",
+      "released_at": "2026-11-01",
+      "install_source": "Locaryn/morph-claude-code@v1.0.0-beta.4"
+    },
     {
       "version": "1.0.0-beta.3",
       "is_beta": true,

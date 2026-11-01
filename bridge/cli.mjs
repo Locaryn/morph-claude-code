@@ -205,6 +205,14 @@ export function dateDe(v, base = Date.now()) {
  */
 let connexion = null;
 
+/** Appelés quand une connexion au compte se termine, réussie ou non : l'état
+ *  du compte gardé en mémoire par le pont devient faux à cet instant. */
+const finsDeConnexion = new Set();
+
+export function surFinDeConnexion(fn) {
+  finsDeConnexion.add(fn);
+}
+
 export function demarrerConnexion(exe, args, { attenteMs = 15000 } = {}) {
   if (connexion) {
     try {
@@ -247,6 +255,9 @@ export function demarrerConnexion(exe, args, { attenteMs = 15000 } = {}) {
       etat.fini = true;
       etat.code = code;
       if (connexion === etat) connexion = null;
+      // La connexion peut finir seule (retour automatique du navigateur),
+      // sans code collé : c'est ici que l'état du compte change.
+      for (const fn of finsDeConnexion) fn(code);
       rendre({ ok: code === 0, url: etat.url, detail: code === 0 ? "Connecté." : etat.sortie.slice(-400) });
     });
     setTimeout(() => rendre({ ok: true, url: etat.url }), attenteMs);

@@ -49,9 +49,14 @@
     connectedCallback() {
       this.lire();
       var self = this;
+      // Toutes les 8 s, et toutes les 2 s pendant une connexion : la page de
+      // connexion peut la terminer seule, la carte doit le voir sans clic.
+      var tour = 0;
       this.minuteur = window.setInterval(function () {
-        if (!self.occupe) self.lire();
-      }, 8000);
+        tour += 1;
+        var enConnexion = self.lien || self.attendCode;
+        if (!self.occupe && (enConnexion || tour % 4 === 0)) self.lire();
+      }, 2000);
     }
 
     disconnectedCallback() {

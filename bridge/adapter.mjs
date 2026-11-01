@@ -73,6 +73,60 @@ function noterLimite(ev) {
   derniereMaj = new Date().toISOString();
 }
 
+/** Fenêtres lues dans l'utilisation du compte, dans l'ordre d'affichage. */
+const FENETRES_COMPTE = ["five_hour", "seven_day", "seven_day_opus", "seven_day_sonnet"];
+const USAGE_TTL_MS = 60_000;
+let usageCache = null;
+
+/** Le jeton du compte connecté au CLI. Il n'est jamais écrit ni renvoyé :
+ *  il sert seulement à lire l'utilisation de l'abonnement. */
+function jetonDuCompte() {
+  const dossier = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), ".claude");
+  try {
+    const brut = JSON.parse(fs.readFileSync(path.join(dossier, ".credentials.json"), "utf8"));
+    const o = brut.claudeAiOauth;
+    if (!o?.accessToken) return null;
+    // Expiré : le CLI le renouvelle à la prochaine réponse, on attend.
+    if (typeof o.expiresAt === "number" && o.expiresAt < Date.now()) return null;
+    return { jeton: o.accessToken, plan: o.subscriptionType ?? null };
+  } catch (e) {
+    if (e?.code !== "ENOENT") console.error(`[claude-code] identifiants illisibles : ${e?.message ?? e}`);
+    return null;
+  }
+}
+
+/** L'utilisation de l'abonnement (5 h et semaine), en pourcentages. */
+async function usageDuCompte() {
+  if (usageCache && Date.now() - usageCache.lu < USAGE_TTL_MS) return usageCache.valeur;
+  const compte = jetonDuCompte();
+  if (!compte) return null;
+  let valeur = null;
+  try {
+    const r = await fetch("https://api.anthropic.com/api/oauth/usage", {
+      headers: {
+        Authorization: `Bearer ${compte.jeton}`,
+        "anthropic-beta": "oauth-2025-04-20",
+        Accept: "application/json",
+      },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+    const windows = FENETRES_COMPTE.filter((id) => typeof d?.[id]?.utilization === "number").map((id) => ({
+      id,
+      label: libelleFenetre(null, id),
+      used_percent: Math.round(d[id].utilization * 10) / 10,
+      resets_at: dateDe(d[id].resets_at ?? null),
+      status: d[id].utilization >= 100 ? "rejected" : "allowed",
+    }));
+    if (windows.length) valeur = { plan: compte.plan, windows, updated_at: new Date().toISOString() };
+  } catch (e) {
+    console.error(`[claude-code] utilisation du compte indisponible : ${e?.message ?? e}`);
+  }
+  usageCache = { lu: Date.now(), valeur };
+  return valeur;
+}
+
 export default {
   id: "claude-code",
   label: "Claude Code",
@@ -137,6 +191,16 @@ export default {
   },
 
   async usage() {
+    const compte = await usageDuCompte();
+    if (compte) {
+      // Le compte donne les pourcentages ; le flux garde le statut le plus
+      // récent (« rejected » arrive avant que le compte ne soit relu).
+      const windows = compte.windows.map((w) => {
+        const flux = limites.get(w.id);
+        return flux?.status === "rejected" ? { ...w, status: "rejected" } : w;
+      });
+      return { plan: compte.plan, windows, updated_at: compte.updated_at, note: null };
+    }
     return {
       plan: null,
       windows: [...limites.values()],
