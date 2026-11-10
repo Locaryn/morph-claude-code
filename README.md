@@ -35,7 +35,7 @@ message, il lance `claude -p` en flux JSON :
 
 - Node.js 18 ou plus récent (pour le pont).
 - Claude Code : déjà installé (`claude` dans le PATH, ou `~/.local/bin`), ou
-  installé par Locaryn depuis la carte du compte (`@anthropic-ai/claude-code`
+  installé par Locaryn depuis le dossier Claude Code des modèles (`@anthropic-ai/claude-code`
   épinglé, dans le dossier de la passerelle — pas en global).
 
 ## Limites connues

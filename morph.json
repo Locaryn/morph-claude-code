@@ -2,7 +2,7 @@
   "$schema": "https://locaryn.dev/schema/morph.json/v0.1",
   "apiVersion": "0.1",
   "name": "morph-claude-code",
-  "version": "1.0.0-beta.6",
+  "version": "1.0.0-beta.7",
   "description": "Vos modèles Claude (Opus, Sonnet, Haiku) dans Locaryn, avec votre abonnement Claude : le CLI officiel Claude Code sert de pont, sur la boucle locale. Jauge des limites (5 h, semaine) dans le chat.",
   "author": "Locaryn Team",
   "license": "Apache-2.0",
@@ -61,17 +61,6 @@
   "ui_contributions": {
     "slots": [
       {
-        "id": "claude-code-account",
-        "slot": "account.connections",
-        "order": 20,
-        "type": "custom-element",
-        "label": "Claude Code",
-        "icon": "cloud",
-        "entry": "dist/account.js",
-        "tag": "locaryn-claude-code-account",
-        "hint": "Connecter votre compte Claude Code"
-      },
-      {
         "id": "claude-code-quota-pill",
         "slot": "composer.status",
         "order": 10,
@@ -106,6 +95,14 @@
   "beta": true,
   "stability": "untested",
   "versions": [
+    {
+      "version": "1.0.0-beta.7",
+      "is_beta": true,
+      "summary": "Plus de bloc « Claude Code » dans la page du compte : la connexion se fait depuis le dossier Claude Code des modèles.",
+      "tag": "v1.0.0-beta.7",
+      "released_at": "2026-11-10",
+      "install_source": "Locaryn/morph-claude-code@v1.0.0-beta.7"
+    },
     {
       "version": "1.0.0-beta.6",
       "is_beta": true,
