@@ -2,7 +2,7 @@
   "$schema": "https://locaryn.dev/schema/morph.json/v0.1",
   "apiVersion": "0.1",
   "name": "morph-claude-code",
-  "version": "1.0.0-beta.7",
+  "version": "1.0.0-beta.8",
   "description": "Vos modèles Claude (Opus, Sonnet, Haiku) dans Locaryn, avec votre abonnement Claude : le CLI officiel Claude Code sert de pont, sur la boucle locale. Jauge des limites (5 h, semaine) dans le chat.",
   "author": "Locaryn Team",
   "license": "Apache-2.0",
@@ -95,6 +95,14 @@
   "beta": true,
   "stability": "untested",
   "versions": [
+    {
+      "version": "1.0.0-beta.8",
+      "is_beta": true,
+      "summary": "Quotas : squelettes de taille fixe pendant la lecture (la liste ne saute plus), même teinte sur la tuile et dans le dossier (limite refusée en rouge des deux côtés), tuile limitée à trois fenêtres puis « +N… ».",
+      "tag": "v1.0.0-beta.8",
+      "released_at": "2026-11-13",
+      "install_source": "Locaryn/morph-claude-code@v1.0.0-beta.8"
+    },
     {
       "version": "1.0.0-beta.7",
       "is_beta": true,
